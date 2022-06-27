@@ -17,10 +17,6 @@ createApp(App).use(router).use(pinia).mount('#app')
 /* Init Pinia main store */
 const mainStore = useMainStore(pinia)
 
-/* Fetch sample data */
-mainStore.fetch('clients')
-mainStore.fetch('history')
-
 /* App style */
 mainStore.setStyle(localStorage[styleKey] ?? 'basic')
 
@@ -30,7 +26,7 @@ if ((!localStorage[darkModeKey] && window.matchMedia('(prefers-color-scheme: dar
 }
 
 /* Default title tag */
-const defaultDocumentTitle = 'Admin One Vue 3 Tailwind'
+const defaultDocumentTitle = 'Temperature Analyze'
 
 /* Collapse mobile aside menu on route change */
 router.beforeEach(() => {

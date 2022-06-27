@@ -22,7 +22,7 @@ module.exports = {
       },
       maxHeight: {
         'screen-menu': 'calc(100vh - 3.5rem)',
-        modal: 'calc(100vh - 160px)'
+        modal: '100vh'
       },
       transitionProperty: {
         position: 'right, left, top, bottom, margin, padding',

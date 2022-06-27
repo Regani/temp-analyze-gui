@@ -1,13 +1,16 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useMainStore } from '@/stores/main'
-import { mdiEye, mdiTrashCan } from '@mdi/js'
+import { mdiEye } from '@mdi/js'
 import CardBoxModal from '@/components/CardBoxModal.vue'
 import TableCheckboxCell from '@/components/TableCheckboxCell.vue'
 import BaseLevel from '@/components/BaseLevel.vue'
 import BaseButtons from '@/components/BaseButtons.vue'
 import BaseButton from '@/components/BaseButton.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
+import prettyMilliseconds from 'pretty-ms'
+import LineChart from '@/components/Charts/LineChart.vue'
+import CardBox from '@/components/CardBox.vue'
+import * as chartConfig from "@/components/Charts/chart.config";
 
 defineProps({
   checkable: Boolean
@@ -25,11 +28,9 @@ const tableTrOddStyle = computed(() => mainStore.tableTrOddStyle)
 
 const darkMode = computed(() => mainStore.darkMode)
 
-const items = computed(() => mainStore.clients)
+const items = computed(() => mainStore.sensors)
 
 const isModalActive = ref(false)
-
-const isModalDangerActive = ref(false)
 
 const perPage = ref(10)
 
@@ -55,44 +56,31 @@ const pagesList = computed(() => {
   return pagesList
 })
 
-const remove = (arr, cb) => {
-  const newArr = []
+const chartData = ref(null)
 
-  arr.forEach(item => {
-    if (!cb(item)) {
-      newArr.push(item)
-    }
-  })
+const selectedSensor = ref(null)
 
-  return newArr
-}
-
-const checked = (isChecked, client) => {
-  if (isChecked) {
-    checkedRows.value.push(client)
-  } else {
-    checkedRows.value = remove(checkedRows.value, row => row.id === client.id)
-  }
+const fillChartData = (sensor) => {
+  selectedSensor.value = sensor
+  chartData.value = chartConfig.sampleChartData(mainStore.sensorsTempResultsSorted[sensor.id])
 }
 </script>
 
 <template>
   <CardBoxModal
     v-model="isModalActive"
-    title="Sample modal"
+    :title="`Статистика температур для сенсора: ${selectedSensor?.name}`"
   >
-    <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
-    <p>This is sample modal</p>
-  </CardBoxModal>
-
-  <CardBoxModal
-    v-model="isModalDangerActive"
-    large-title="Please confirm"
-    button="danger"
-    has-cancel
-  >
-    <p>Lorem ipsum dolor sit amet <b>adipiscing elit</b></p>
-    <p>This is sample modal</p>
+    <CardBox
+      class="mb-6"
+    >
+      <div v-if="chartData">
+        <line-chart
+          :data="chartData"
+          class="h-96"
+        />
+      </div>
+    </CardBox>
   </CardBoxModal>
 
   <div
@@ -114,12 +102,10 @@ const checked = (isChecked, client) => {
     <thead>
       <tr>
         <th v-if="checkable" />
-        <th />
-        <th>Name</th>
-        <th>Company</th>
-        <th>City</th>
-        <th>Progress</th>
-        <th>Created</th>
+        <th>№</th>
+        <th>Назва</th>
+        <th>Кількість результатів сенсорів</th>
+        <th>Частота оновлення інформації</th>
         <th />
       </tr>
     </thead>
@@ -133,37 +119,17 @@ const checked = (isChecked, client) => {
           v-if="checkable"
           @checked="checked($event, client)"
         />
-        <td class="image-cell">
-          <UserAvatar
-            :username="client.name"
-            class="image"
-          />
+        <td data-label="Name">
+          {{ client.id }}
         </td>
         <td data-label="Name">
           {{ client.name }}
         </td>
         <td data-label="Company">
-          {{ client.company }}
+          {{ client.tempResults.length }}
         </td>
         <td data-label="City">
-          {{ client.city }}
-        </td>
-        <td
-          data-label="Progress"
-          class="progress-cell"
-        >
-          <progress
-            max="100"
-            :value="client.progress"
-          >
-            {{ client.progress }}
-          </progress>
-        </td>
-        <td data-label="Created">
-          <small
-            class="text-gray-500 dark:text-gray-400"
-            :title="client.created"
-          >{{ client.created }}</small>
+          {{ prettyMilliseconds(client.checkInterval) }}
         </td>
         <td class="actions-cell">
           <BaseButtons
@@ -174,13 +140,7 @@ const checked = (isChecked, client) => {
               color="info"
               :icon="mdiEye"
               small
-              @click="isModalActive = true"
-            />
-            <BaseButton
-              color="danger"
-              :icon="mdiTrashCan"
-              small
-              @click="isModalDangerActive = true"
+              @click="[isModalActive = true, fillChartData(client)]"
             />
           </BaseButtons>
         </td>

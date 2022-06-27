@@ -26,11 +26,6 @@ export const useMainStore = defineStore('main', {
     tableTrOddStyle: '',
     overlayStyle: '',
 
-    /* User */
-    userName: null,
-    userEmail: null,
-    userAvatar: null,
-
     /* fullScreen - fullscreen form layout (e.g. login page) */
     isFullScreen: true,
 
@@ -45,22 +40,30 @@ export const useMainStore = defineStore('main', {
     isFieldFocusRegistered: false,
 
     /* Sample data (commonly used) */
-    clients: [],
-    history: []
+    sensors: []
   }),
-  actions: {
-    setUser (payload) {
-      if (payload.name) {
-        this.userName = payload.name
-      }
-      if (payload.email) {
-        this.userEmail = payload.email
-      }
-      if (payload.avatar) {
-        this.userAvatar = payload.avatar
-      }
+  getters: {
+    allTempResults: (state) => {
+      return state.sensors.map(sensor => {
+        return sensor.tempResults.map(tempResult => {
+            return {
+              sensorId: sensor.id,
+              ...tempResult
+            }
+        })
+      }).flat()
     },
+    sensorsTempResultsSorted: (state) => {
+      let result = {}
 
+      state.sensors.forEach(sensor => {
+        result[sensor.id] = sensor.tempResults.sort((a, b) => new Date(a.date) - new Date(b.date))
+      })
+
+      return result
+    }
+  },
+  actions: {
     setStyle (payload) {
       if (!styles[payload]) {
         return
@@ -111,12 +114,12 @@ export const useMainStore = defineStore('main', {
       this.darkMode = value
     },
 
-    fetch (sampleDataKey) {
+    setSensors () {
       axios
-        .get(`data-sources/${sampleDataKey}.json`)
+        .get('https://temp-analyze-api.herokuapp.com/sensor')
         .then(r => {
-          if (r.data && r.data.data) {
-            this[sampleDataKey] = r.data.data
+          if (r.data && r.data.length) {
+            this.sensors = r.data
           }
         })
         .catch(error => {

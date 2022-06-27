@@ -1,5 +1,5 @@
 {
-  "name": "admin-one-vue-tailwind",
+  "name": "temp-analyze-gui",
   "version": "2.3.0",
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,7 @@
     "chart.js": "^3.6.0",
     "numeral": "^2.0.6",
     "pinia": "^2.0.13",
+    "pretty-ms": "^8.0.0",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0"
   },
